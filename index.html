@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Un date ?</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,500&family=Space+Grotesk:wght@400;500&display=swap');
+
+  :root{
+    --ink:#2b1f24;
+    --paper:#f6ece7;
+    --rose:#c9536b;
+    --gold:#b8925a;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    height:100%;
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Space Grotesk', sans-serif;
+    overflow-x:hidden;
+  }
+  body{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:24px;
+  }
+  .card{
+    max-width:480px;
+    width:100%;
+    text-align:center;
+  }
+  .eyebrow{
+    letter-spacing:.28em;
+    text-transform:uppercase;
+    font-size:.72rem;
+    color:var(--rose);
+    margin-bottom:18px;
+  }
+  h1{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:clamp(2.2rem, 8vw, 3.4rem);
+    line-height:1.05;
+    margin:0 0 10px;
+  }
+  h1 em{
+    font-style:italic;
+    color:var(--rose);
+  }
+  p.sub{
+    font-size:1rem;
+    opacity:.75;
+    margin:0 0 40px;
+  }
+  .step{ display:none; }
+  .step.active{ display:block; animation:rise .5s ease both; }
+  @keyframes rise{
+    from{opacity:0; transform:translateY(10px);}
+    to{opacity:1; transform:translateY(0);}
+  }
+  .choices{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:14px;
+  }
+  .choice{
+    background:transparent;
+    border:1.5px solid var(--ink);
+    border-radius:2px;
+    padding:22px 14px;
+    cursor:pointer;
+    font-family:'Fraunces', serif;
+    font-size:1.1rem;
+    color:var(--ink);
+    transition:.25s ease;
+  }
+  .choice:hover{
+    background:var(--ink);
+    color:var(--paper);
+  }
+  .choice:hover .place{
+    color:var(--paper);
+    opacity:.7;
+  }
+  .choice .emoji{
+    display:block;
+    font-size:1.8rem;
+    margin-bottom:8px;
+  }
+  .choice .place{
+    display:block;
+    font-family:'Space Grotesk', sans-serif;
+    font-size:.68rem;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    opacity:.55;
+    margin-top:6px;
+    color:var(--rose);
+  }
+  .result{
+    font-family:'Fraunces', serif;
+    font-size:1.4rem;
+  }
+  .result .food{
+    color:var(--rose);
+    font-style:italic;
+  }
+  .status{
+    margin-top:16px;
+    font-size:.85rem;
+    opacity:.6;
+  }
+  .divider{
+    width:36px;
+    height:1px;
+    background:var(--gold);
+    margin:34px auto;
+  }
+  .choices-single{
+    display:flex;
+    justify-content:center;
+  }
+  .choice-yes{
+    padding:22px 56px;
+    font-size:1.3rem;
+    animation:pulse 2.4s ease-in-out infinite;
+  }
+  .choice-yes .emoji{
+    color:var(--rose);
+    font-size:1.4rem;
+  }
+  @keyframes pulse{
+    0%, 100%{ box-shadow:0 0 0 0 rgba(201,83,107,0); transform:scale(1); }
+    50%{ box-shadow:0 0 0 8px rgba(201,83,107,.08); transform:scale(1.02); }
+  }
+  .heart-signature{
+    margin:28px auto 18px;
+    animation:beat 1.1s ease-in-out infinite;
+  }
+  @keyframes beat{
+    0%, 100%{ transform:scale(1); }
+    30%{ transform:scale(1.18); }
+    45%{ transform:scale(0.96); }
+    60%{ transform:scale(1.08); }
+  }
+  @media (prefers-reduced-motion: reduce){
+    .choice-yes, .heart-signature{ animation:none; }
+  }
+
+  /* --- Coeur qui explose --- */
+  .heart-gate{
+    position:fixed;
+    inset:0;
+    background:var(--paper);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    z-index:20;
+    overflow:hidden;
+    transition:opacity .5s ease .55s, visibility .5s ease .55s;
+  }
+  .heart-gate.opening{
+    opacity:0;
+    visibility:hidden;
+  }
+  .gate-flash{
+    position:absolute;
+    inset:0;
+    background:radial-gradient(circle, #fff 0%, var(--rose) 45%, transparent 72%);
+    opacity:0;
+    transform:scale(.2);
+    pointer-events:none;
+  }
+  .heart-gate.exploding .gate-flash{
+    animation:flash .6s ease-out forwards;
+  }
+  @keyframes flash{
+    0%{ opacity:0; transform:scale(.2); }
+    35%{ opacity:.85; transform:scale(1.4); }
+    100%{ opacity:0; transform:scale(2.6); }
+  }
+  .heart-wrap{
+    position:relative;
+    width:210px;
+    height:190px;
+    cursor:pointer;
+  }
+  .heart-core{
+    width:100%;
+    height:100%;
+    transition:transform .55s cubic-bezier(.34,1.56,.64,1), opacity .35s ease .25s;
+    filter:drop-shadow(0 10px 24px rgba(201,83,107,.35));
+  }
+  .heart-wrap:active .heart-core{ transform:scale(.94); }
+  .heart-gate.pulsing .heart-core{ transform:scale(1.22); }
+  .heart-gate.exploding .heart-core{ transform:scale(2.6) rotate(8deg); opacity:0; }
+  .particles{ position:absolute; inset:0; pointer-events:none; }
+  .particle{
+    position:absolute;
+    top:50%;
+    left:50%;
+    width:16px;
+    height:14px;
+    margin:-7px 0 0 -8px;
+    opacity:0;
+    pointer-events:none;
+  }
+  .heart-gate.exploding .particle{
+    animation:burst .85s cubic-bezier(.2,.7,.3,1) forwards;
+    animation-delay:.05s;
+  }
+  @keyframes burst{
+    0%{ opacity:0; transform:translate(0,0) scale(.3) rotate(0deg); }
+    12%{ opacity:1; }
+    100%{
+      opacity:0;
+      transform:translate(var(--tx), var(--ty)) scale(var(--sc)) rotate(var(--rot));
+    }
+  }
+  .gate-hint{
+    margin-top:26px;
+    font-size:.72rem;
+    letter-spacing:.22em;
+    text-transform:uppercase;
+    color:var(--rose);
+    opacity:.7;
+    animation:hintfade 2s ease-in-out infinite;
+    transition:opacity .3s ease;
+  }
+  .heart-gate.pulsing .gate-hint,
+  .heart-gate.exploding .gate-hint{
+    opacity:0;
+    animation:none;
+  }
+  @keyframes hintfade{
+    0%, 100%{ opacity:.4; }
+    50%{ opacity:.85; }
+  }
+  .card{ transform-origin:top center; }
+  .card.reveal{ animation:unfoldLetter .8s cubic-bezier(.22,.85,.3,1.15) both; }
+  @keyframes unfoldLetter{
+    0%{ opacity:0; transform:scaleY(.2) scaleX(.75) translateY(-10px); }
+    55%{ opacity:1; transform:scaleY(1.06) scaleX(1.02) translateY(0); }
+    100%{ opacity:1; transform:scaleY(1) scaleX(1) translateY(0); }
+  }
+  @media (prefers-reduced-motion: reduce){
+    .gate-hint, .card.reveal, .heart-gate.exploding .particle, .gate-flash{ animation:none; }
+  }
+</style>
+</head>
+<body>
+
+  <div id="heart-gate" class="heart-gate">
+    <div class="gate-flash" aria-hidden="true"></div>
+    <div class="heart-wrap" id="heart-wrap" onclick="openHeart()">
+      <svg class="heart-core" viewBox="0 0 210 190" aria-hidden="true">
+        <path d="M105 182 C105 182 8 112 8 58 C8 24 34 4 64 4 C84 4 99 16 105 34 C111 16 126 4 146 4 C176 4 202 24 202 58 C202 112 105 182 105 182 Z" fill="var(--rose)"/>
+      </svg>
+      <div class="particles" id="particles"></div>
+    </div>
+    <div class="gate-hint">Touche le cœur</div>
+  </div>
+
+  <div class="card" id="card">
+
+    <div id="step-ask" class="step active">
+      <div class="eyebrow">Vendredi 24 juillet, le soir</div>
+      <h1>Ça te dis, un <em>date</em> ?</h1>
+      <p class="sub">Une seule réponse existe.</p>
+      <div class="choices choices-single">
+        <button class="choice choice-yes" onclick="goTo('step-food')">
+          <span class="emoji">♥</span>Oui
+        </button>
+      </div>
+    </div>
+
+    <div id="step-food" class="step">
+      <div class="eyebrow">Bien joué</div>
+      <h1>On mange <em>quoi</em> ?</h1>
+      <p class="sub">Choisis, et où tu préfères.</p>
+      <div class="choices">
+        <button class="choice" onclick="sendChoice('Sushi', 'chez toi')">
+          <span class="emoji">🍣</span>Sushi
+          <span class="place">chez toi</span>
+        </button>
+        <button class="choice" onclick="sendChoice('Pizza', 'chez toi ou dehors')">
+          <span class="emoji">🍕</span>Pizza
+          <span class="place">chez toi ou dehors</span>
+        </button>
+        <button class="choice" onclick="sendChoice('McDo', 'chez toi')">
+          <span class="emoji">🍟</span>McDo
+          <span class="place">chez toi</span>
+        </button>
+        <button class="choice" onclick="sendChoice('Resto normal', 'dehors')">
+          <span class="emoji">🍽️</span>Resto
+          <span class="place">dehors</span>
+        </button>
+      </div>
+      <div id="status" class="status"></div>
+    </div>
+
+    <div id="step-done" class="step">
+      <div class="eyebrow">C'est noté</div>
+      <h1>Rendez-vous pris.</h1>
+      <p class="result">Vendredi 24 juillet, ce sera <span class="food" id="food-final"></span> <span id="place-final"></span>.</p>
+      <div class="heart-signature" aria-hidden="true">
+        <svg viewBox="0 0 32 28" width="26" height="24">
+          <path d="M16 26 C16 26 2 16.5 2 8.5 C2 3.8 5.6 1 9.3 1 C12.1 1 14.4 2.6 16 5.2 C17.6 2.6 19.9 1 22.7 1 C26.4 1 30 3.8 30 8.5 C30 16.5 16 26 16 26 Z" fill="var(--rose)"/>
+        </svg>
+      </div>
+      <p class="sub" style="margin-bottom:0;">Je t'aime, j'ai hâte de te retrouver.</p>
+    </div>
+
+  </div>
+
+<script>
+  // Génère les particules coeur autour du centre
+  (function buildParticles(){
+    const container = document.getElementById('particles');
+    const count = 16;
+    for(let i=0; i<count; i++){
+      const angle = (360 / count) * i + (Math.random()*18 - 9);
+      const rad = angle * Math.PI / 180;
+      const dist = 130 + Math.random()*110;
+      const tx = Math.cos(rad) * dist;
+      const ty = Math.sin(rad) * dist;
+      const rot = (Math.random()*360 - 180).toFixed(0) + 'deg';
+      const sc = (0.4 + Math.random()*0.5).toFixed(2);
+
+      const p = document.createElement('div');
+      p.className = 'particle';
+      p.style.setProperty('--tx', tx.toFixed(0)+'px');
+      p.style.setProperty('--ty', ty.toFixed(0)+'px');
+      p.style.setProperty('--rot', rot);
+      p.style.setProperty('--sc', sc);
+      p.style.animationDelay = (Math.random()*0.12).toFixed(2)+'s';
+      p.innerHTML = '<svg viewBox="0 0 16 14" width="16" height="14"><path d="M8 13.5C8 13.5 1 8.4 1 4.4C1 2 2.9 0.5 5 0.5C6.4 0.5 7.5 1.3 8 2.6C8.5 1.3 9.6 0.5 11 0.5C13.1 0.5 15 2 15 4.4C15 8.4 8 13.5 8 13.5Z" fill="var(--rose)"/></svg>';
+      container.appendChild(p);
+    }
+  })();
+
+  function openHeart(){
+    const gate = document.getElementById('heart-gate');
+    const card = document.getElementById('card');
+
+    gate.classList.add('pulsing');
+
+    setTimeout(() => {
+      gate.classList.remove('pulsing');
+      gate.classList.add('exploding');
+      card.classList.add('reveal');
+    }, 260);
+
+    setTimeout(() => {
+      gate.classList.add('opening');
+    }, 380);
+  }
+
+  function goTo(id){
+    document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+  }
+
+  async function sendChoice(food, place){
+    document.getElementById('status').textContent = "Envoi...";
+
+    try {
+      const formData = new FormData();
+      formData.append("choix", food);
+      formData.append("lieu", place);
+      formData.append("date", "Vendredi 24 juillet, le soir");
+      formData.append("message", "Elle a répondu depuis la page date : " + food + " (" + place + ")");
+
+      await fetch("https://formspree.io/f/xykrzqre", {
+        method: "POST",
+        headers: { "Accept": "application/json" },
+        body: formData
+      });
+    } catch(err) {
+      console.error(err);
+    }
+
+    document.getElementById('food-final').textContent = food;
+    document.getElementById('place-final').textContent = place;
+    goTo('step-done');
+  }
+</script>
+
+</body>
+</html>
